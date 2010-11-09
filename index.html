@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <link rel="stylesheet"
+	  href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/themes/mint-choc/jquery-ui.css">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" 
+	    type="text/javascript"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/jquery-ui.min.js"
+	    type="text/javascript"></script>
+    <script src="strophe.min.js" type="text/javascript"></script>
+    <script src="mustache.js" type="text/javascript"></script>
+    
+    <script src="minijab.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      MINIJAB.bosh_url = '/bosh';
+    </script>
+  </head>
+
+  <body>
+    <div id="login_dialog" class="hidden">
+      <p id="loginMessage"></p>
+      <label>JID:</label><br />
+      <input type="text" id="jid" /><br />
+      <label>Password:</label><br />
+      <input type="password" id="password" />
+    </div>
+    
+    <div class="ui-layout-north">
+      <span style="float: right;">
+	Status: <span id="connStatusIndicator">Offline</span>
+      </span>
+    </div>
+    
+    <div id="statusArea" class="ui-layout-east">
+      <div id="loggingArea" class="ui-layout-center">
+      </div>
+      <div id="commandInputArea" class="ui-layout-south">
+	<form id="chatinput-form">Input:<input type="text" name="chatinput" id="chatinput" /></form>
+      </div>
+    </div>
+    
+  </body>
+</html>
