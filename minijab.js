@@ -1,7 +1,7 @@
 var MINIJAB =  {
     connection: null,
     NS_MUC: 'http://jabber.org/protocol/muc',
-    removed_default_tab: false
+    userLogin: null
 };
 
 MINIJAB.connect = function(ev, data){
@@ -38,6 +38,7 @@ MINIJAB.showLoginDialog = function(message){
 	title: 'Welcome!',
 	buttons: {
 	    "Connect": function(){
+		MINIJAB.userLogin = $('#jid').val();
 		var userJid = $('#jid').val(), userPass = $('#password').val();
 		if (userJid.indexOf('@') == -1){
 		    userJid += ('@' + MINIJAB.anonymous_domain);
@@ -63,10 +64,13 @@ MINIJAB.connected = function(){
     //var domain = Strophe.getDomainFromJid(MINIJAB.connection.jid);
     MINIJAB.connection.addHandler(MINIJAB.handleMessage, null, "message");
     MINIJAB.connection.send($pres());
-    MINIJAB.connection.send( 
-	$pres({to: 'support@' + MINIJAB.conference + '/Some User'
-              }).c('x', {xmlns: MINIJAB.NS_MUC}));
+    var replaced = MINIJAB.userLogin.replace('@', '_at_');
+    MINIJAB.joinRoom(replaced + '@' + MINIJAB.conference + '/' + 'Some User');
     return true;
+};
+
+MINIJAB.joinRoom = function(room){
+    MINIJAB.connection.send($pres({to: room}).c('x',{xmlns: MINIJAB.NS_MUC}));
 };
 
 MINIJAB.chatInputEnter = function(e) {
@@ -85,7 +89,7 @@ $('document').ready(
     function(){
 	$('#channels').tabs();
 	//$('#channels').tabs("remove", 0);
-	$('#channels').tabs("add", "#bla", "Bla");
+	$('#channels').tabs("add", "#room-some-room", "Some Room");
 	$(document).bind('connect', MINIJAB.connect);
 	$(document).bind('connected', MINIJAB.connected);
 	$('#chatinput').bind('keydown', MINIJAB.chatInputEnter);
