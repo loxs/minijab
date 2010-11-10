@@ -1,5 +1,7 @@
 var MINIJAB =  {
-    connection: null
+    connection: null,
+    NS_MUC: 'http://jabber.org/protocol/muc',
+    removed_default_tab: false
 };
 
 MINIJAB.connect = function(ev, data){
@@ -10,8 +12,7 @@ MINIJAB.connect = function(ev, data){
 	} else if (status === Strophe.Status.AUTHENTICATING){
 	    $('#connStatusIndicator').html('Authenticating...');
 	} else if (status === Strophe.Status.CONNECTED){
-	    $('#connStatusIndicator').html('Connected');
-	    MINIJAB.connected();
+	    $(document).trigger('connected');
 	} else if (status === Strophe.Status.DISCONNECTING){
 	    $('#connStatusIndicator').html('Disconnecting...');
 	} else if (status === Strophe.Status.DISCONNECTED){
@@ -38,7 +39,7 @@ MINIJAB.showLoginDialog = function(message){
 	buttons: {
 	    "Connect": function(){
 		$(document).trigger('connect', {
-		    jid: $('#jid').val(),
+		    jid: $('#jid').val() + '@' + MINIJAB.server,
 		    password: $('#password').val()
 		});
 		$('#password').val('');
@@ -56,15 +57,20 @@ MINIJAB.sendPing = function(to){
 
 MINIJAB.handleMessage = function(message){
     var vars = {jid: $(message).attr('from'), msg: $(message).children('body').text()};
-    var template = '<p><strong>{{jid}}</strong>: {{msg}}</p>';
-    $('#loggingArea').append(Mustache.to_html(template, vars));
+    var template = '<p><strong>{{jid}}</strong>: {{msg}}</p>'; 
+    $('#chatArea').append(Mustache.to_html(template, vars)).scrollTop(100000);
     return true;
 };
 
 MINIJAB.connected = function(){
+    $('#connStatusIndicator').html('Connected');
     var domain = Strophe.getDomainFromJid(MINIJAB.connection.jid);
     MINIJAB.connection.addHandler(MINIJAB.handleMessage, null, "message");
     MINIJAB.connection.send($pres());
+    MINIJAB.connection.send( 
+	$pres({
+		  to: 'support@conference.metin-sfco.office.n7/Metin Akat'
+              }).c('x', {xmlns: MINIJAB.NS_MUC}));
     return true;
 };
 
@@ -97,12 +103,17 @@ MINIJAB.drawMap = function (){
 
 
 
-$('document').ready(function(){
-    $(document).bind('connect', MINIJAB.connect);
-    $('#chatinput').bind('keydown', MINIJAB.chatInputEnter);
-
-    $("button, input:submit").button();
-    $("a", ".demo").click(function() { return false; });
-
-    MINIJAB.showLoginDialog();
-});
+$('document').ready(
+    function(){
+	$('#channels').tabs();
+	//$('#channels').tabs("remove", 0);
+	//$('#channels').tabs("add", "#bla", "Bla");
+	$(document).bind('connect', MINIJAB.connect);
+	$(document).bind('connected', MINIJAB.connected);
+	$('#chatinput').bind('keydown', MINIJAB.chatInputEnter);
+	$("button, input:submit").button();
+	$("a", ".demo").click(function() { return false; });
+	MINIJAB.layout =  $('body').layout({});
+	MINIJAB.showLoginDialog();
+    }
+);
