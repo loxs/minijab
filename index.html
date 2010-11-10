@@ -14,7 +14,7 @@
 
   <body>
     <div id="login_dialog" class="hidden">
-      <p id="loginMessage"></p>
+      <p id="loginMessage" class="ui-state-error"></p>
       <label>E-Mail:</label><br />
       <input type="text" id="email" /><br />
       <label>Name:</label><br />
@@ -23,7 +23,7 @@
       <input type="password" id="password" />
     </div>
     
-    <div class="ui-layout-north">
+    <div class="ui-layout-north ui-widget-header">
       <span style="float: right;">Status: <span id="connStatusIndicator">Offline</span> </span>
     </div>
     <!-- <div id="chatArea" class="ui-layout-center" style="overflow-y:scroll"> </div> -->
@@ -33,9 +33,9 @@
 	<p>You are not connected.</p>
       </div>
     </div>
-    <div id="inputArea" class="ui-layout-south">
+    <div id="inputArea" class="ui-widget ui-layout-south">
 	<textarea cols="60" rows="3" name="chatinput" id="chatinput"></textarea>
-	<button>Send</button>
+	<!-- <button>Send</button> -->
     </div>
   </body>
 </html>

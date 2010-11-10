@@ -35,24 +35,20 @@ MINIJAB.showLoginDialog = function(message){
 	autoOpen: true,
 	draggable: false,
 	modal: true,
-	title: 'Sign In',
+	title: 'Welcome!',
 	buttons: {
 	    "Connect": function(){
-		$(document).trigger('connect', {
-		    jid: $('#jid').val() + '@' + MINIJAB.server,
-		    password: $('#password').val()
-		});
+		var userJid = $('#jid').val(), userPass = $('#password').val();
+		if (userJid.indexOf('@') == -1){
+		    userJid += ('@' + MINIJAB.anonymous_domain);
+		}
+		$(document).trigger('connect', {jid: userJid, password: userPass});
 		$('#password').val('');
 		$(this).dialog('close');
 	    }    
 	}
     });
     $('#loginMessage').html(message);
-};
-
-MINIJAB.sendPing = function(to){
-    var ping = $iq({to: to, type: 'get', id: 'ping1'}).c('ping', {xmlns: "urn:xmpp:ping"});
-    MINIJAB.connection.send(ping);
 };
 
 MINIJAB.handleMessage = function(message){
@@ -64,12 +60,11 @@ MINIJAB.handleMessage = function(message){
 
 MINIJAB.connected = function(){
     $('#connStatusIndicator').html('Connected');
-    var domain = Strophe.getDomainFromJid(MINIJAB.connection.jid);
+    //var domain = Strophe.getDomainFromJid(MINIJAB.connection.jid);
     MINIJAB.connection.addHandler(MINIJAB.handleMessage, null, "message");
     MINIJAB.connection.send($pres());
     MINIJAB.connection.send( 
-	$pres({
-		  to: 'support@conference.metin-sfco.office.n7/Metin Akat'
+	$pres({to: 'support@' + MINIJAB.conference + '/Some User'
               }).c('x', {xmlns: MINIJAB.NS_MUC}));
     return true;
 };
@@ -85,29 +80,12 @@ MINIJAB.chatInputEnter = function(e) {
     }
 };
 
-MINIJAB.drawMap = function (){
-    var row_cnt = 0, col_cnt = 0, yCoord = 0, xCoord = 0;
-    var map_table = "";
-    for(row_cnt = 0; row_cnt < 40; row_cnt ++){
-        map_table += "<tr class='mapRow'>";
-        for(col_cnt = 0; col_cnt < 25; col_cnt ++){
-            var vars = {xC: (col_cnt), yC: (row_cnt)};
-            //template = "<td class='mapCell' id='x{{xC}}y{{yC}}'>{{xC}};{{yC}}</td>";
-	    template = "<td class='mapCell' id='x{{xC}}y{{yC}}'></td>";
-            map_table += Mustache.to_html(template, vars);
-        };
-        map_table += "</tr>";
-    }
-    $(this).append(map_table);
-};
-
-
 
 $('document').ready(
     function(){
 	$('#channels').tabs();
 	//$('#channels').tabs("remove", 0);
-	//$('#channels').tabs("add", "#bla", "Bla");
+	$('#channels').tabs("add", "#bla", "Bla");
 	$(document).bind('connect', MINIJAB.connect);
 	$(document).bind('connected', MINIJAB.connected);
 	$('#chatinput').bind('keydown', MINIJAB.chatInputEnter);
