@@ -10,10 +10,25 @@
     <script src="mustache.js" type="text/javascript"></script>    
     <script src="minijab.js" type="text/javascript"></script>
     <script src="config.js" type="text/javascript"></script>
+    <script src="SHA-1.js" type="text/javascript"></script>
     <title>MiniJab</title>
+    <style type="text/css">
+      div.scrollable {
+          height: 66%;
+          overflow-y: scroll;
+      }
+      .ui-widget, .ui-widget-header {
+          margin-bottom: 3px;
+      }
+    </style>
   </head>
 
   <body>
+    <div id="anonymous_login_dialog" class="hidden">
+      <label>Name or Email:</label><br />
+      <input type="text" id="anonymous_login"/><br/>
+    </div>
+    <!--
     <div id="login_dialog" class="hidden">
       <p id="loginMessage" class="ui-state-error"></p>
       <label>Name or Email:</label><br />
@@ -21,19 +36,19 @@
       <label>Password (not required):</label><br />
       <input type="password" id="password" />
     </div>
-    
-    <div class="ui-layout-north ui-widget-header">
+    -->
+    <div class="ui-widget-header" style="height: 1.2em">
       <span style="float: right;">Status: <span id="connStatusIndicator">Offline</span> </span>
     </div>
     <!-- <div id="chatArea" class="ui-layout-center" style="overflow-y:scroll"> </div> -->
-    <div id="channels" class="ui-layout-center">
+    <div id="channels" class="ui-widget">
       <ul><li><a href="#no-room">No Room</a></li></ul>
-      <div id="no-room">
+      <div id="no-room" class="scrollable">
 	<p>You are not connected.</p>
       </div>
     </div>
-    <div id="inputArea" class="ui-widget ui-layout-south">
-	<textarea cols="60" rows="2" name="chatinput" id="chatinput"></textarea>
+    <div id="inputArea" class="ui-widget">
+	<input name="chatinput" id="chatinput" style="width: 100%"></input>
 	<!-- <button>Send</button> -->
     </div>
   </body>

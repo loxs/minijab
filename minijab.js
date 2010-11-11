@@ -31,7 +31,7 @@ MINIJAB.connect = function(ev, data){
 };
 
 MINIJAB.showLoginDialog = function(message){
-    $('#login_dialog').dialog({
+    /*$('#login_dialog').dialog({
 	autoOpen: true,
 	draggable: false,
 	modal: true,
@@ -49,7 +49,42 @@ MINIJAB.showLoginDialog = function(message){
 	    }    
 	}
     });
-    $('#loginMessage').html(message);
+    $('#loginMessage').html(message);*/
+    $('#anonymous_login_dialog').dialog(
+	{
+	    autoOpen: true,
+	    draggable: false,
+	    modal: true,
+	    title: 'Welcome!',
+	    buttons: {
+		"Connect": function(){
+		    MINIJAB.userIdent = $('#anonymous_login').val();
+		    MINIJAB.anonymousJ = Sha1.hash(MINIJAB.userIdent).substring(0,12);
+		    MINIJAB.anonymousJid = MINIJAB.anonymousJ + '@' + MINIJAB.anonymous_domain;
+		    MINIJAB.anonymousJid += '/minijab';
+		    $(document).trigger('connect', {jid: MINIJAB.anonymousJid, password: ''});
+		    $(this).dialog('close');
+		}
+	    }
+	}
+    );
+};
+
+MINIJAB.handlePresence = function(presence){
+    var from = $(presence).attr('from');
+    if ($(presence).attr('type') === 'error') {
+	alert('Error joining room, try to reload the page');
+    } else {
+	if (from === MINIJAB.roomJid){
+	    var roomhash = Sha1.hash(from).substring(0,12);
+	    $('#channels').tabs("add", '#' + roomhash, "support");
+	    var roomtab = $('#' + roomhash);
+	    roomtab.addClass('scrollable');
+	    roomtab.attr('jid', from);
+	    roomtab.append('<p>Successfully joined a room. Please ask us a question.</p>');
+	}
+    }
+    return true;
 };
 
 MINIJAB.handleMessage = function(message){
@@ -63,9 +98,12 @@ MINIJAB.connected = function(){
     $('#connStatusIndicator').html('Connected');
     //var domain = Strophe.getDomainFromJid(MINIJAB.connection.jid);
     MINIJAB.connection.addHandler(MINIJAB.handleMessage, null, "message");
+    MINIJAB.connection.addHandler(MINIJAB.handlePresence, null, "presence");
     MINIJAB.connection.send($pres());
-    var replaced = MINIJAB.userLogin.replace('@', '_at_');
-    MINIJAB.joinRoom(replaced + '@' + MINIJAB.conference + '/' + 'Some User');
+    MINIJAB.roomJid = 'support' + '@' + MINIJAB.conference + '/' + MINIJAB.userIdent;
+    MINIJAB.joinRoom(MINIJAB.roomJid);
+    $('#channels').tabs("remove", 0);
+    $('#channels').tabs("add", '#blahroom', "blahroom");
     return true;
 };
 
@@ -76,9 +114,11 @@ MINIJAB.joinRoom = function(room){
 MINIJAB.chatInputEnter = function(e) {
     if (e.which == 13 /* Return */) {
         e.preventDefault();
+	var sendTo = $('.ui-tabs-panel').not('.ui-tabs-hide').attr('jid');
+	sendTo  = Strophe.getBareJidFromJid(sendTo);
 	var chatinp = $("#chatinput");
 	var text = chatinp.val();
-	var msg = $msg({to: MINIJAB.jid, type: 'chat'}).c('body').t(text);
+	var msg = $msg({to: sendTo, type: 'groupchat'}).c('body').t(text);
 	MINIJAB.connection.send(msg);
         chatinp.val('');
     }
@@ -88,14 +128,12 @@ MINIJAB.chatInputEnter = function(e) {
 $('document').ready(
     function(){
 	$('#channels').tabs();
-	//$('#channels').tabs("remove", 0);
-	$('#channels').tabs("add", "#room-some-room", "Some Room");
 	$(document).bind('connect', MINIJAB.connect);
 	$(document).bind('connected', MINIJAB.connected);
 	$('#chatinput').bind('keydown', MINIJAB.chatInputEnter);
 	$("button, input:submit").button();
 	$("a", ".demo").click(function() { return false; });
-	MINIJAB.layout =  $('body').layout({});
+	//MINIJAB.layout =  $('body').layout({});
 	MINIJAB.showLoginDialog();
     }
 );
