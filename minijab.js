@@ -96,16 +96,17 @@ MINIJAB.handlePresence = function(presence){
 
 MINIJAB.handleMessage = function(message){
     var msgType = $(message).attr('type');
+    var from = $(message).attr('from');
+    var bareJid = Strophe.getBareJidFromJid(from);
     if (msgType === 'groupchat'){
-	var fromName = Strophe.getResourceFromJid($(message).attr('from'));
-	var chanJid = Strophe.getBareJidFromJid($(message).attr('from'));
-	var chanHash = Sha1.hash(chanJid);
+	var fromName = Strophe.getResourceFromJid(from);
+	var chanid = '#' + Sha1.hash(bareJid);
     } else if (msgType === 'chat') {
 	//console.log(message);
     }
     var vars = {jid: fromName, msg: $(message).children('body').text()};
     var template = '<p class="message"><span>{{jid}}</span>: {{msg}}</p>'; 
-    $('#' + chanHash).append(Mustache.to_html(template, vars)).scrollTop(100000);
+    $(chanid).append(Mustache.to_html(template, vars)).scrollTop(100000);
     return true;
 };
 
