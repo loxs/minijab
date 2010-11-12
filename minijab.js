@@ -98,11 +98,16 @@ MINIJAB.handleMessage = function(message){
     var msgType = $(message).attr('type');
     var from = $(message).attr('from');
     var bareJid = Strophe.getBareJidFromJid(from);
+    var fromName = Strophe.getResourceFromJid(from);
     if (msgType === 'groupchat'){
-	var fromName = Strophe.getResourceFromJid(from);
 	var chanid = '#' + Sha1.hash(bareJid);
     } else if (msgType === 'chat') {
-	//console.log(message);
+	if (MINIJAB.mucRooms.indexOf(bareJid) != -1){
+	    var chanid = '#' + Sha1.hash(from);
+	} else {
+	    fromName = Strophe.getNodeFromJid(from);
+	}
+	MINIJAB.createChannel(chanid, fromName, from, 'chat');
     }
     var vars = {jid: fromName, msg: $(message).children('body').text()};
     var template = '<p class="message"><span>{{jid}}</span>: {{msg}}</p>'; 
