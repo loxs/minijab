@@ -1,7 +1,8 @@
 var MINIJAB =  {
     connection: null,
     NS_MUC: 'http://jabber.org/protocol/muc',
-    userLogin: null
+    userLogin: null,
+    mucRooms: []
 };
 
 MINIJAB.connect = function(ev, data){
@@ -70,40 +71,53 @@ MINIJAB.showLoginDialog = function(message){
     );
 };
 
+MINIJAB.createChannel = function(chanid, chanLabel, chanJid, msgType){
+    if (!$(chanid).length){
+	$('#channels').tabs("add", chanid, chanLabel);
+	$(chanid).addClass('scrollable')
+	    .attr('jid', chanJid).attr('msgType', msgType);
+    }
+};
+
 MINIJAB.handlePresence = function(presence){
     var from = $(presence).attr('from');
+    var bareJid = Strophe.getBareJidFromJid(from);
     if ($(presence).attr('type') === 'error') {
 	alert('Error joining room, try to reload the page');
     } else {
-	if (from === MINIJAB.roomJid){
-	    var roomhash = Sha1.hash(from).substring(0,12);
-	    $('#channels').tabs("add", '#' + roomhash, "support");
-	    var roomtab = $('#' + roomhash);
-	    roomtab.addClass('scrollable');
-	    roomtab.attr('jid', from);
-	    roomtab.append('<p>Successfully joined a room. Please ask us a question.</p>');
+	if (MINIJAB.mucRooms.indexOf(bareJid) != -1){
+	    MINIJAB.createChannel('#' + Sha1.hash(bareJid),
+				  Strophe.getNodeFromJid(from),
+				  bareJid, 'groupchat');
 	}
     }
     return true;
 };
 
 MINIJAB.handleMessage = function(message){
-    var vars = {jid: $(message).attr('from'), msg: $(message).children('body').text()};
-    var template = '<p><strong>{{jid}}</strong>: {{msg}}</p>'; 
-    $('#chatArea').append(Mustache.to_html(template, vars)).scrollTop(100000);
+    var msgType = $(message).attr('type');
+    if (msgType === 'groupchat'){
+	var fromName = Strophe.getResourceFromJid($(message).attr('from'));
+	var chanJid = Strophe.getBareJidFromJid($(message).attr('from'));
+	var chanHash = Sha1.hash(chanJid);
+    } else if (msgType === 'chat') {
+	//console.log(message);
+    }
+    var vars = {jid: fromName, msg: $(message).children('body').text()};
+    var template = '<p class="message"><span>{{jid}}</span>: {{msg}}</p>'; 
+    $('#' + chanHash).append(Mustache.to_html(template, vars)).scrollTop(100000);
     return true;
 };
 
 MINIJAB.connected = function(){
-    $('#connStatusIndicator').html('Connected');
-    //var domain = Strophe.getDomainFromJid(MINIJAB.connection.jid);
     MINIJAB.connection.addHandler(MINIJAB.handleMessage, null, "message");
     MINIJAB.connection.addHandler(MINIJAB.handlePresence, null, "presence");
     MINIJAB.connection.send($pres());
-    MINIJAB.roomJid = 'support' + '@' + MINIJAB.conference + '/' + MINIJAB.userIdent;
-    MINIJAB.joinRoom(MINIJAB.roomJid);
+    $('#connStatusIndicator').html('Connected');
+    var roomJid = 'support' + '@' + MINIJAB.conference;
+    MINIJAB.mucRooms.push(roomJid);
+    MINIJAB.joinRoom(roomJid + '/' + MINIJAB.userIdent);
     $('#channels').tabs("remove", 0);
-    $('#channels').tabs("add", '#blahroom', "blahroom");
     return true;
 };
 
@@ -114,11 +128,11 @@ MINIJAB.joinRoom = function(room){
 MINIJAB.chatInputEnter = function(e) {
     if (e.which == 13 /* Return */) {
         e.preventDefault();
-	var sendTo = $('.ui-tabs-panel').not('.ui-tabs-hide').attr('jid');
-	sendTo  = Strophe.getBareJidFromJid(sendTo);
+	var activeChan = $('.ui-tabs-panel').not('.ui-tabs-hide');
+	var sendTo  = Strophe.getBareJidFromJid(activeChan.attr('jid'));
+	var msgType = activeChan.attr('msgType');
 	var chatinp = $("#chatinput");
-	var text = chatinp.val();
-	var msg = $msg({to: sendTo, type: 'groupchat'}).c('body').t(text);
+	var msg = $msg({to: sendTo, type: msgType}).c('body').t(chatinp.val());
 	MINIJAB.connection.send(msg);
         chatinp.val('');
     }
