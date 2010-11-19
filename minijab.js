@@ -60,8 +60,8 @@ MINIJAB.showLoginDialog = function(message){
 	    buttons: {
 		"Connect": function(){
 		    MINIJAB.userIdent = $('#anonymous_login').val();
-		    MINIJAB.anonymousJ = Sha1.hash(MINIJAB.userIdent).substring(0,12);
-		    MINIJAB.anonymousJid = MINIJAB.anonymousJ + '@' + MINIJAB.anonymous_domain;
+		    MINIJAB.anonymousNode = Sha1.hash(MINIJAB.userIdent).substring(0,12);
+		    MINIJAB.anonymousJid = MINIJAB.anonymousNode + '@' + MINIJAB.anonymous_domain;
 		    MINIJAB.anonymousJid += '/minijab';
 		    $(document).trigger('connect', {jid: MINIJAB.anonymousJid, password: ''});
 		    $(this).dialog('close');
@@ -130,7 +130,7 @@ MINIJAB.connected = function(){
     MINIJAB.connection.addHandler(MINIJAB.handlePresence, null, "presence");
     MINIJAB.connection.send($pres());
     $('#connStatusIndicator').html('Connected');
-    var roomJid = 'support' + '@' + MINIJAB.conference;
+    var roomJid = MINIJAB.anonymousNode + '@' + MINIJAB.conference;
     MINIJAB.mucRooms.push(roomJid);
     MINIJAB.joinRoom(roomJid + '/' + MINIJAB.userIdent);
     $('#channels').tabs("remove", 0);
