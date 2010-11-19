@@ -145,10 +145,18 @@ MINIJAB.chatInputEnter = function(e) {
     if (e.which == 13 /* Return */) {
         e.preventDefault();
 	var activeChan = $('.ui-tabs-panel').not('.ui-tabs-hide');
-	var sendTo  = Strophe.getBareJidFromJid(activeChan.attr('jid'));
 	var msgType = activeChan.attr('msgType');
 	var chatinp = $("#chatinput");
+	if (msgType == 'chat'){
+	    var sendTo  = activeChan.attr('jid');
+	    MINIJAB.addMessageToChannel(MINIJAB.userIdent,
+					chatinp.val(),
+					activeChan.attr('id'));
+	} else {
+	    var sendTo  = Strophe.getBareJidFromJid(activeChan.attr('jid'));
+	}
 	var msg = $msg({to: sendTo, type: msgType}).c('body').t(chatinp.val());
+	console.log(sendTo);
 	MINIJAB.connection.send(msg);
         chatinp.val('');
     }
