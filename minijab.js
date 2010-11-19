@@ -94,24 +94,34 @@ MINIJAB.handlePresence = function(presence){
     return true;
 };
 
+MINIJAB.addMessageToChannel = function(jid, message, chanid){
+    var vars = {jid: jid, msg: message};
+    var template = '<p class="message"><span>{{jid}}</span>: {{msg}}</p>'; 
+    $('#' + chanid).append(Mustache.to_html(template, vars)).scrollTop(100000);
+    var tab = $('#tab-' + chanid);
+    if (!tab.parent().hasClass('ui-tabs-selected')){
+	tab.addClass('new-message').effect('highlight', null, 1000);	
+    }
+};
+
 MINIJAB.handleMessage = function(message){
     var msgType = $(message).attr('type');
     var from = $(message).attr('from');
     var bareJid = Strophe.getBareJidFromJid(from);
     var fromName = Strophe.getResourceFromJid(from);
     if (msgType === 'groupchat'){
-	var chanid = '#' + Sha1.hash(bareJid);
+	var chanid = Sha1.hash(bareJid);
     } else if (msgType === 'chat') {
 	if (MINIJAB.mucRooms.indexOf(bareJid) != -1){
-	    var chanid = '#' + Sha1.hash(from);
+	    var chanid = Sha1.hash(from);
 	} else {
 	    fromName = Strophe.getNodeFromJid(from);
 	}
-	MINIJAB.createChannel(chanid, fromName, from, 'chat');
+	MINIJAB.createChannel('#' + chanid, fromName, from, 'chat');
     }
-    var vars = {jid: fromName, msg: $(message).children('body').text()};
-    var template = '<p class="message"><span>{{jid}}</span>: {{msg}}</p>'; 
-    $(chanid).append(Mustache.to_html(template, vars)).scrollTop(100000);
+    MINIJAB.addMessageToChannel(fromName,
+				$(message).children('body').text(),
+				chanid);
     return true;
 };
 
@@ -144,16 +154,22 @@ MINIJAB.chatInputEnter = function(e) {
     }
 };
 
+MINIJAB.tabAdded = function(event, ui){
+    $(ui.tab).attr('id', 'tab-' + $(ui.panel).attr('id'));
+};
+MINIJAB.tabShown = function(event, ui){
+    $(ui.tab).removeClass('new-message');
+    $('#chatinput').focus();
+};
 
 $('document').ready(
     function(){
-	$('#channels').tabs();
+	$('#channels').tabs({add: MINIJAB.tabAdded,
+			     show: MINIJAB.tabShown});
 	$(document).bind('connect', MINIJAB.connect);
 	$(document).bind('connected', MINIJAB.connected);
 	$('#chatinput').bind('keydown', MINIJAB.chatInputEnter);
-	$("button, input:submit").button();
 	$("a", ".demo").click(function() { return false; });
-	//MINIJAB.layout =  $('body').layout({});
 	MINIJAB.showLoginDialog();
     }
 );
